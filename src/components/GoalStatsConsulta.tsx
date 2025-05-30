@@ -62,7 +62,7 @@ export const GoalStatsConsulta = () => {
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="text-center text-2xl text-gray-800">
-            🏠 Seleção de Equipes
+            Seleção de Equipes
           </CardTitle>
         </CardHeader>
         <CardContent>
