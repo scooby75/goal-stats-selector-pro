@@ -8,15 +8,15 @@ const parseCSV = (csvText: string): TeamStats[] => {
   const headers = lines[0].split(',');
   
   console.log('CSV Headers:', headers);
-  console.log('First few lines:', lines.slice(0, 3));
+  console.log('Total lines:', lines.length);
   
-  const parsedData = lines.slice(1).map(line => {
+  const parsedData = lines.slice(1).map((line, index) => {
     const values = line.split(',');
     const stats: any = {};
     
-    headers.forEach((header, index) => {
+    headers.forEach((header, headerIndex) => {
       const cleanHeader = header.trim().replace(/"/g, '');
-      const cleanValue = values[index]?.trim().replace(/"/g, '');
+      const cleanValue = values[headerIndex]?.trim().replace(/"/g, '') || '';
       
       if (cleanHeader === 'Team' || cleanHeader === 'team' || cleanHeader.toLowerCase().includes('team')) {
         stats.Team = cleanValue;
@@ -26,10 +26,30 @@ const parseCSV = (csvText: string): TeamStats[] => {
     });
     
     return stats as TeamStats;
+  }).filter(team => {
+    // Filter out invalid entries
+    const teamName = team.Team;
+    
+    // Remove entries with empty team names
+    if (!teamName || teamName.trim() === '') {
+      return false;
+    }
+    
+    // Remove "League average" entries
+    if (teamName.toLowerCase().includes('league average')) {
+      return false;
+    }
+    
+    // Remove league header entries (lines that only contain league name)
+    if (teamName.includes(' - ') && (!team.GP || team.GP === 0)) {
+      return false;
+    }
+    
+    return true;
   });
 
-  console.log('Parsed data sample:', parsedData.slice(0, 3));
-  console.log('Team names found:', parsedData.map(team => team.Team).filter(Boolean).slice(0, 10));
+  console.log('Parsed and filtered data count:', parsedData.length);
+  console.log('Sample teams:', parsedData.slice(0, 10).map(team => team.Team));
   
   return parsedData;
 };
@@ -77,11 +97,11 @@ export const useGoalStats = () => {
   const isLoading = homeLoading || awayLoading || overallLoading;
   const error = homeError || awayError || overallError;
 
-  // Debug the actual data structure
-  console.log('Home stats data:', homeStats);
-  console.log('Away stats data:', awayStats);
-  console.log('Home team names:', homeStats.map(team => team.Team));
-  console.log('Away team names:', awayStats.map(team => team.Team));
+  // Enhanced debugging
+  console.log('Raw home stats count:', homeStats.length);
+  console.log('Raw away stats count:', awayStats.length);
+  console.log('Valid home teams:', homeStats.filter(team => team.Team && team.Team.trim() !== '').length);
+  console.log('Valid away teams:', awayStats.filter(team => team.Team && team.Team.trim() !== '').length);
 
   const calculateLeagueAverage = () => {
     if (overallStats.length === 0) return { "3.5+": 0, "4.5+": 0 };
@@ -102,7 +122,13 @@ export const useGoalStats = () => {
     leagueAverage: calculateLeagueAverage(),
   };
 
-  console.log('Goal stats data:', { isLoading, error, dataLength: overallStats.length });
+  console.log('Final goal stats data:', { 
+    isLoading, 
+    error: error?.message, 
+    homeCount: homeStats.length,
+    awayCount: awayStats.length,
+    overallCount: overallStats.length 
+  });
 
   return { goalStatsData, isLoading, error };
 };
