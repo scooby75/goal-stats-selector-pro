@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { TeamStats, GoalStatsData } from '@/types/goalStats';
@@ -8,7 +7,10 @@ const parseCSV = (csvText: string): TeamStats[] => {
   const lines = csvText.trim().split('\n');
   const headers = lines[0].split(',');
   
-  return lines.slice(1).map(line => {
+  console.log('CSV Headers:', headers);
+  console.log('First few lines:', lines.slice(0, 3));
+  
+  const parsedData = lines.slice(1).map(line => {
     const values = line.split(',');
     const stats: any = {};
     
@@ -16,8 +18,8 @@ const parseCSV = (csvText: string): TeamStats[] => {
       const cleanHeader = header.trim().replace(/"/g, '');
       const cleanValue = values[index]?.trim().replace(/"/g, '');
       
-      if (cleanHeader === 'Team') {
-        stats[cleanHeader] = cleanValue;
+      if (cleanHeader === 'Team' || cleanHeader === 'team' || cleanHeader.toLowerCase().includes('team')) {
+        stats.Team = cleanValue;
       } else {
         stats[cleanHeader] = parseFloat(cleanValue) || 0;
       }
@@ -25,6 +27,11 @@ const parseCSV = (csvText: string): TeamStats[] => {
     
     return stats as TeamStats;
   });
+
+  console.log('Parsed data sample:', parsedData.slice(0, 3));
+  console.log('Team names found:', parsedData.map(team => team.Team).filter(Boolean).slice(0, 10));
+  
+  return parsedData;
 };
 
 const fetchCSVData = async (url: string): Promise<TeamStats[]> => {
@@ -69,6 +76,12 @@ export const useGoalStats = () => {
 
   const isLoading = homeLoading || awayLoading || overallLoading;
   const error = homeError || awayError || overallError;
+
+  // Debug the actual data structure
+  console.log('Home stats data:', homeStats);
+  console.log('Away stats data:', awayStats);
+  console.log('Home team names:', homeStats.map(team => team.Team));
+  console.log('Away team names:', awayStats.map(team => team.Team));
 
   const calculateLeagueAverage = () => {
     if (overallStats.length === 0) return { "3.5+": 0, "4.5+": 0 };

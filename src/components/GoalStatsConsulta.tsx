@@ -37,8 +37,21 @@ export const GoalStatsConsulta = () => {
     );
   }
 
-  const homeTeams = goalStatsData.homeStats.map(team => team.Team).sort();
-  const awayTeams = goalStatsData.awayStats.map(team => team.Team).sort();
+  // Enhanced team extraction with debugging
+  const homeTeams = goalStatsData.homeStats
+    .map(team => team.Team)
+    .filter(teamName => teamName && teamName.trim() !== '')
+    .sort();
+    
+  const awayTeams = goalStatsData.awayStats
+    .map(team => team.Team)
+    .filter(teamName => teamName && teamName.trim() !== '')
+    .sort();
+
+  console.log('Extracted home teams:', homeTeams);
+  console.log('Extracted away teams:', awayTeams);
+  console.log('Home teams count:', homeTeams.length);
+  console.log('Away teams count:', awayTeams.length);
 
   const selectedHomeStats = goalStatsData.homeStats.find(team => team.Team === selectedHomeTeam);
   const selectedAwayStats = goalStatsData.awayStats.find(team => team.Team === selectedAwayTeam);
@@ -56,36 +69,48 @@ export const GoalStatsConsulta = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Time da Casa
+                Time da Casa ({homeTeams.length} times disponíveis)
               </label>
               <Select value={selectedHomeTeam} onValueChange={setSelectedHomeTeam}>
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-full bg-white">
                   <SelectValue placeholder="Selecione o time da casa" />
                 </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {homeTeams.map((team) => (
-                    <SelectItem key={team} value={team}>
-                      {team}
+                <SelectContent className="bg-white z-50 max-h-[300px] overflow-y-auto">
+                  {homeTeams.length > 0 ? (
+                    homeTeams.map((team) => (
+                      <SelectItem key={team} value={team} className="bg-white hover:bg-gray-100">
+                        {team}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="no-teams" disabled className="bg-white">
+                      Nenhum time encontrado
                     </SelectItem>
-                  ))}
+                  )}
                 </SelectContent>
               </Select>
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Time Visitante
+                Time Visitante ({awayTeams.length} times disponíveis)
               </label>
               <Select value={selectedAwayTeam} onValueChange={setSelectedAwayTeam}>
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-full bg-white">
                   <SelectValue placeholder="Selecione o time visitante" />
                 </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {awayTeams.map((team) => (
-                    <SelectItem key={team} value={team}>
-                      {team}
+                <SelectContent className="bg-white z-50 max-h-[300px] overflow-y-auto">
+                  {awayTeams.length > 0 ? (
+                    awayTeams.map((team) => (
+                      <SelectItem key={team} value={team} className="bg-white hover:bg-gray-100">
+                        {team}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="no-teams" disabled className="bg-white">
+                      Nenhum time encontrado
                     </SelectItem>
-                  ))}
+                  )}
                 </SelectContent>
               </Select>
             </div>
