@@ -2,15 +2,29 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { useGoalStats } from '@/hooks/useGoalStats';
 import { StatsDisplay } from './StatsDisplay';
 
 export const GoalStatsConsulta = () => {
+  console.log('GoalStatsConsulta component rendering');
+  
   const [selectedHomeTeam, setSelectedHomeTeam] = useState<string>('');
   const [selectedAwayTeam, setSelectedAwayTeam] = useState<string>('');
   
-  const { goalStatsData, isLoading } = useGoalStats();
+  const { goalStatsData, isLoading, error } = useGoalStats();
+
+  if (error) {
+    console.error('Error in GoalStatsConsulta:', error);
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <AlertCircle className="h-8 w-8 mx-auto mb-4 text-red-600" />
+          <p className="text-red-600">Erro ao carregar dados: {error.message}</p>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
