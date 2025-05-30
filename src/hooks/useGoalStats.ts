@@ -48,21 +48,21 @@ export const useGoalStats = () => {
 
   const { data: homeStats = [], isLoading: homeLoading, error: homeError } = useQuery({
     queryKey: ['homeStats'],
-    queryFn: () => fetchCSVData('https://raw.githubusercontent.com/scooby75/jogosdodia/refs/heads/main/Goals_Stats_Home.csv'),
+    queryFn: () => fetchCSVData('https://raw.githubusercontent.com/scooby75/goal-stats-selector-pro/refs/heads/main/Goals_Stats_Home.csv?token=GHSAT0AAAAAADDERIFT2IAVGDGD2JNJPHXA2BZPBMA'),
     retry: 3,
     retryDelay: 1000,
   });
 
   const { data: awayStats = [], isLoading: awayLoading, error: awayError } = useQuery({
     queryKey: ['awayStats'],
-    queryFn: () => fetchCSVData('https://raw.githubusercontent.com/scooby75/jogosdodia/refs/heads/main/Goals_Stats_Away.csv'),
+    queryFn: () => fetchCSVData('https://raw.githubusercontent.com/scooby75/goal-stats-selector-pro/refs/heads/main/Goals_Stats_Away.csv?token=GHSAT0AAAAAADDERIFSCWQYSOPTTC7GOUO22BZPBXA'),
     retry: 3,
     retryDelay: 1000,
   });
 
   const { data: overallStats = [], isLoading: overallLoading, error: overallError } = useQuery({
     queryKey: ['overallStats'],
-    queryFn: () => fetchCSVData('https://raw.githubusercontent.com/scooby75/jogosdodia/refs/heads/main/Goals_Stats_Overall.csv'),
+    queryFn: () => fetchCSVData('https://raw.githubusercontent.com/scooby75/goal-stats-selector-pro/refs/heads/main/Goals_Stats_Overall.csv?token=GHSAT0AAAAAADDERIFSKR7K76P2SHC24WQA2BZPA7Q'),
     retry: 3,
     retryDelay: 1000,
   });
