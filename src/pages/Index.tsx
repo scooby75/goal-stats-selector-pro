@@ -10,7 +10,7 @@ const Index = () => {
             ⚽ Goals Stats
           </h1>
           <p className="text-lg text-gray-600">
-            Analise estatísticas detalhadas de gols dos times
+            Analise estatísticas detalhadas
           </p>
         </div>
         <GoalStatsConsulta />
