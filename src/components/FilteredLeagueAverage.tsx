@@ -20,48 +20,47 @@ export const FilteredLeagueAverage: React.FC<FilteredLeagueAverageProps> = ({
   homeLeagueAverages,
   awayLeagueAverages,
 }) => {
-  const findRelevantLeagueAverage = () => {
-    console.log('Finding relevant league average...');
+  const findLeagueAverageForTeams = () => {
+    console.log('Finding league average for selected teams...');
     console.log('Selected home team:', selectedHomeTeam);
     console.log('Selected away team:', selectedAwayTeam);
-    console.log('Home league averages available:', homeLeagueAverages.map(avg => avg.Team));
-    console.log('Away league averages available:', awayLeagueAverages.map(avg => avg.Team));
+    console.log('Home league averages:', homeLeagueAverages.map(avg => avg.Team));
+    console.log('Away league averages:', awayLeagueAverages.map(avg => avg.Team));
 
-    // Find league average that corresponds to selected teams
-    // Priority: home team league, then away team league
+    // Try to find the league average from home team's data first
     if (selectedHomeTeam && homeLeagueAverages.length > 0) {
-      // Look for a league average that might correspond to the home team's league
-      const relevantLeagueAvg = homeLeagueAverages.find(avg => 
+      const leagueAverage = homeLeagueAverages.find(avg => 
         avg.Team.toLowerCase().includes('league average')
-      ) || homeLeagueAverages[0];
-      
-      console.log('Found relevant home league average:', relevantLeagueAvg);
-      return relevantLeagueAvg;
+      );
+      if (leagueAverage) {
+        console.log('Found league average from home data:', leagueAverage);
+        return leagueAverage;
+      }
     }
     
+    // If not found in home data, try away team's data
     if (selectedAwayTeam && awayLeagueAverages.length > 0) {
-      const relevantLeagueAvg = awayLeagueAverages.find(avg => 
+      const leagueAverage = awayLeagueAverages.find(avg => 
         avg.Team.toLowerCase().includes('league average')
-      ) || awayLeagueAverages[0];
-      
-      console.log('Found relevant away league average:', relevantLeagueAvg);
-      return relevantLeagueAvg;
+      );
+      if (leagueAverage) {
+        console.log('Found league average from away data:', leagueAverage);
+        return leagueAverage;
+      }
     }
     
-    console.log('No relevant league average found');
+    console.log('No league average found for selected teams');
     return null;
   };
 
-  const leagueAverage = findRelevantLeagueAverage();
+  const leagueAverage = findLeagueAverageForTeams();
   
   if (!leagueAverage) return null;
 
   const getLeagueName = () => {
-    // Extract league name from the league average entry
     let leagueName = leagueAverage.Team;
     if (leagueName.toLowerCase().includes('league average')) {
       leagueName = leagueName.replace(/league average/gi, '').trim();
-      // Remove any trailing dashes or extra spaces
       leagueName = leagueName.replace(/^-\s*/, '').replace(/\s*-$/, '').trim();
     }
     return leagueName || 'Liga';
