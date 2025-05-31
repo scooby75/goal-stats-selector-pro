@@ -20,47 +20,58 @@ export const FilteredLeagueAverage: React.FC<FilteredLeagueAverageProps> = ({
   homeLeagueAverages,
   awayLeagueAverages,
 }) => {
-  const findLeagueAverage = () => {
-    console.log('Finding league average...');
+  const findRelevantLeagueAverage = () => {
+    console.log('Finding relevant league average...');
     console.log('Selected home team:', selectedHomeTeam);
     console.log('Selected away team:', selectedAwayTeam);
     console.log('Home league averages available:', homeLeagueAverages.map(avg => avg.Team));
     console.log('Away league averages available:', awayLeagueAverages.map(avg => avg.Team));
 
-    // Try to find the specific league average based on selected teams
+    // Find league average that corresponds to selected teams
+    // Priority: home team league, then away team league
     if (selectedHomeTeam && homeLeagueAverages.length > 0) {
-      // For now, return the first league average from home data
-      // In the future, we could match by league name
-      const leagueAverage = homeLeagueAverages[0];
-      console.log('Found home league average:', leagueAverage);
-      return leagueAverage;
+      // Look for a league average that might correspond to the home team's league
+      const relevantLeagueAvg = homeLeagueAverages.find(avg => 
+        avg.Team.toLowerCase().includes('league average')
+      ) || homeLeagueAverages[0];
+      
+      console.log('Found relevant home league average:', relevantLeagueAvg);
+      return relevantLeagueAvg;
     }
     
     if (selectedAwayTeam && awayLeagueAverages.length > 0) {
-      const leagueAverage = awayLeagueAverages[0];
-      console.log('Found away league average:', leagueAverage);
-      return leagueAverage;
+      const relevantLeagueAvg = awayLeagueAverages.find(avg => 
+        avg.Team.toLowerCase().includes('league average')
+      ) || awayLeagueAverages[0];
+      
+      console.log('Found relevant away league average:', relevantLeagueAvg);
+      return relevantLeagueAvg;
     }
     
-    console.log('No league average found');
+    console.log('No relevant league average found');
     return null;
   };
 
-  const leagueAverage = findLeagueAverage();
+  const leagueAverage = findRelevantLeagueAverage();
   
   if (!leagueAverage) return null;
 
-  const getTitle = () => {
+  const getLeagueName = () => {
     // Extract league name from the league average entry
-    const leagueName = leagueAverage.Team.replace('League average', '').trim();
-    return `Média da Liga - ${leagueName}`;
+    let leagueName = leagueAverage.Team;
+    if (leagueName.toLowerCase().includes('league average')) {
+      leagueName = leagueName.replace(/league average/gi, '').trim();
+      // Remove any trailing dashes or extra spaces
+      leagueName = leagueName.replace(/^-\s*/, '').replace(/\s*-$/, '').trim();
+    }
+    return leagueName || 'Liga';
   };
 
   return (
     <Card className="shadow-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white">
       <CardHeader>
         <CardTitle className="text-center text-xl">
-          🎯 {getTitle()}
+          🎯 Média do confronto das equipes filtradas - {getLeagueName()}
         </CardTitle>
       </CardHeader>
       <CardContent>
