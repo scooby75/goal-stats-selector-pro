@@ -8,6 +8,8 @@ interface FilteredLeagueAverageProps {
   awayStats?: TeamStats;
   selectedHomeTeam: string;
   selectedAwayTeam: string;
+  allHomeStats: TeamStats[];
+  allAwayStats: TeamStats[];
 }
 
 export const FilteredLeagueAverage: React.FC<FilteredLeagueAverageProps> = ({
@@ -15,40 +17,47 @@ export const FilteredLeagueAverage: React.FC<FilteredLeagueAverageProps> = ({
   awayStats,
   selectedHomeTeam,
   selectedAwayTeam,
+  allHomeStats,
+  allAwayStats,
 }) => {
-  const calculateFilteredAverage = () => {
-    const teams = [];
-    if (homeStats) teams.push(homeStats);
-    if (awayStats) teams.push(awayStats);
+  const findLeagueAverage = () => {
+    // First try to find league average from home stats if home team is selected
+    if (selectedHomeTeam && allHomeStats.length > 0) {
+      // Extract league name from team name (e.g., "Japan - J2 League" from team names)
+      const homeTeam = allHomeStats.find(team => team.Team === selectedHomeTeam);
+      if (homeTeam) {
+        // Look for league average entry that contains similar league identifier
+        const leagueAverage = allHomeStats.find(team => 
+          team.Team.toLowerCase().includes('league average') && 
+          team.Team !== 'League average'
+        );
+        if (leagueAverage) return leagueAverage;
+      }
+    }
     
-    if (teams.length === 0) return null;
+    // Then try to find league average from away stats if away team is selected
+    if (selectedAwayTeam && allAwayStats.length > 0) {
+      const awayTeam = allAwayStats.find(team => team.Team === selectedAwayTeam);
+      if (awayTeam) {
+        const leagueAverage = allAwayStats.find(team => 
+          team.Team.toLowerCase().includes('league average') && 
+          team.Team !== 'League average'
+        );
+        if (leagueAverage) return leagueAverage;
+      }
+    }
     
-    const avg15 = teams.reduce((sum, team) => sum + team["1.5+"], 0) / teams.length;
-    const avg25 = teams.reduce((sum, team) => sum + team["2.5+"], 0) / teams.length;
-    const avg35 = teams.reduce((sum, team) => sum + team["3.5+"], 0) / teams.length;
-    const avg45 = teams.reduce((sum, team) => sum + team["4.5+"], 0) / teams.length;
-    
-    return {
-      "1.5+": Math.round(avg15 * 100) / 100,
-      "2.5+": Math.round(avg25 * 100) / 100,
-      "3.5+": Math.round(avg35 * 100) / 100,
-      "4.5+": Math.round(avg45 * 100) / 100,
-    };
+    return null;
   };
 
-  const filteredAverage = calculateFilteredAverage();
+  const leagueAverage = findLeagueAverage();
   
-  if (!filteredAverage) return null;
+  if (!leagueAverage) return null;
 
   const getTitle = () => {
-    if (selectedHomeTeam && selectedAwayTeam) {
-      return `Média dos Times Selecionados`;
-    } else if (selectedHomeTeam) {
-      return `Média do ${selectedHomeTeam}`;
-    } else if (selectedAwayTeam) {
-      return `Média do ${selectedAwayTeam}`;
-    }
-    return 'Média Filtrada';
+    // Extract league name from the league average entry
+    const leagueName = leagueAverage.Team.replace('League average', '').trim();
+    return `Média da Liga - ${leagueName}`;
   };
 
   return (
@@ -61,19 +70,19 @@ export const FilteredLeagueAverage: React.FC<FilteredLeagueAverageProps> = ({
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
           <div className="bg-white/20 rounded-lg p-4">
-            <div className="text-2xl font-bold">{filteredAverage["1.5+"]}%</div>
+            <div className="text-2xl font-bold">{leagueAverage["1.5+"]}%</div>
             <div className="text-sm opacity-90">1.5+ gols</div>
           </div>
           <div className="bg-white/20 rounded-lg p-4">
-            <div className="text-2xl font-bold">{filteredAverage["2.5+"]}%</div>
+            <div className="text-2xl font-bold">{leagueAverage["2.5+"]}%</div>
             <div className="text-sm opacity-90">2.5+ gols</div>
           </div>
           <div className="bg-white/20 rounded-lg p-4">
-            <div className="text-2xl font-bold">{filteredAverage["3.5+"]}%</div>
+            <div className="text-2xl font-bold">{leagueAverage["3.5+"]}%</div>
             <div className="text-sm opacity-90">3.5+ gols</div>
           </div>
           <div className="bg-white/20 rounded-lg p-4">
-            <div className="text-2xl font-bold">{filteredAverage["4.5+"]}%</div>
+            <div className="text-2xl font-bold">{leagueAverage["4.5+"]}%</div>
             <div className="text-sm opacity-90">4.5+ gols</div>
           </div>
         </div>

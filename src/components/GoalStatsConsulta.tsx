@@ -41,12 +41,12 @@ export const GoalStatsConsulta = () => {
   // Enhanced team extraction with debugging
   const homeTeams = goalStatsData.homeStats
     .map(team => team.Team)
-    .filter(teamName => teamName && teamName.trim() !== '')
+    .filter(teamName => teamName && teamName.trim() !== '' && !teamName.toLowerCase().includes('league average'))
     .sort();
     
   const awayTeams = goalStatsData.awayStats
     .map(team => team.Team)
-    .filter(teamName => teamName && teamName.trim() !== '')
+    .filter(teamName => teamName && teamName.trim() !== '' && !teamName.toLowerCase().includes('league average'))
     .sort();
 
   console.log('Extracted home teams:', homeTeams);
@@ -155,6 +155,8 @@ export const GoalStatsConsulta = () => {
           awayStats={selectedAwayStats}
           selectedHomeTeam={selectedHomeTeam}
           selectedAwayTeam={selectedAwayTeam}
+          allHomeStats={goalStatsData.homeStats}
+          allAwayStats={goalStatsData.awayStats}
         />
       )}
 
