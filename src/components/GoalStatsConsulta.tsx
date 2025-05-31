@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2, AlertCircle } from 'lucide-react';
 import { useGoalStats } from '@/hooks/useGoalStats';
 import { StatsDisplay } from './StatsDisplay';
+import { FilteredLeagueAverage } from './FilteredLeagueAverage';
 
 export const GoalStatsConsulta = () => {
   console.log('GoalStatsConsulta component rendering');
@@ -126,7 +127,15 @@ export const GoalStatsConsulta = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-4 text-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div className="bg-white/20 rounded-lg p-4">
+              <div className="text-2xl font-bold">{goalStatsData.leagueAverage["1.5+"]}%</div>
+              <div className="text-sm opacity-90">Jogos 1.5+ gols</div>
+            </div>
+            <div className="bg-white/20 rounded-lg p-4">
+              <div className="text-2xl font-bold">{goalStatsData.leagueAverage["2.5+"]}%</div>
+              <div className="text-sm opacity-90">Jogos 2.5+ gols</div>
+            </div>
             <div className="bg-white/20 rounded-lg p-4">
               <div className="text-2xl font-bold">{goalStatsData.leagueAverage["3.5+"]}%</div>
               <div className="text-sm opacity-90">Jogos 3.5+ gols</div>
@@ -138,6 +147,16 @@ export const GoalStatsConsulta = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Filtered League Average */}
+      {(selectedHomeTeam || selectedAwayTeam) && (
+        <FilteredLeagueAverage 
+          homeStats={selectedHomeStats}
+          awayStats={selectedAwayStats}
+          selectedHomeTeam={selectedHomeTeam}
+          selectedAwayTeam={selectedAwayTeam}
+        />
+      )}
 
       {/* Stats Display */}
       {(selectedHomeTeam || selectedAwayTeam) && (

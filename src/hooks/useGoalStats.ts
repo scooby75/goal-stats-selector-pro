@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { TeamStats, GoalStatsData } from '@/types/goalStats';
@@ -104,12 +105,16 @@ export const useGoalStats = () => {
   console.log('Valid away teams:', awayStats.filter(team => team.Team && team.Team.trim() !== '').length);
 
   const calculateLeagueAverage = () => {
-    if (overallStats.length === 0) return { "3.5+": 0, "4.5+": 0 };
+    if (overallStats.length === 0) return { "1.5+": 0, "2.5+": 0, "3.5+": 0, "4.5+": 0 };
     
+    const total15 = overallStats.reduce((sum, team) => sum + team["1.5+"], 0);
+    const total25 = overallStats.reduce((sum, team) => sum + team["2.5+"], 0);
     const total35 = overallStats.reduce((sum, team) => sum + team["3.5+"], 0);
     const total45 = overallStats.reduce((sum, team) => sum + team["4.5+"], 0);
     
     return {
+      "1.5+": Math.round((total15 / overallStats.length) * 100) / 100,
+      "2.5+": Math.round((total25 / overallStats.length) * 100) / 100,
       "3.5+": Math.round((total35 / overallStats.length) * 100) / 100,
       "4.5+": Math.round((total45 / overallStats.length) * 100) / 100,
     };
