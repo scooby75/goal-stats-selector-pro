@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { TeamStats, GoalStatsData } from '@/types/goalStats';
 
-const parseCSV = (csvText: string): TeamStats[] => {
+const parseCSV = (csvText: string): { teams: TeamStats[], leagueAverages: TeamStats[] } => {
   console.log('Parsing CSV data...');
   const lines = csvText.trim().split('\n');
   const headers = lines[0].split(',');
@@ -11,7 +11,7 @@ const parseCSV = (csvText: string): TeamStats[] => {
   console.log('CSV Headers:', headers);
   console.log('Total lines:', lines.length);
   
-  const parsedData = lines.slice(1).map((line, index) => {
+  const allParsedData = lines.slice(1).map((line, index) => {
     const values = line.split(',');
     const stats: any = {};
     
@@ -28,13 +28,18 @@ const parseCSV = (csvText: string): TeamStats[] => {
     
     return stats as TeamStats;
   }).filter(team => {
-    // Filter out invalid entries
+    // Filter out entries with empty team names
     const teamName = team.Team;
-    
-    // Remove entries with empty team names
-    if (!teamName || teamName.trim() === '') {
-      return false;
-    }
+    return teamName && teamName.trim() !== '';
+  });
+
+  // Separate league averages from regular teams
+  const leagueAverages = allParsedData.filter(team => 
+    team.Team.toLowerCase().includes('league average')
+  );
+  
+  const teams = allParsedData.filter(team => {
+    const teamName = team.Team;
     
     // Remove "League average" entries
     if (teamName.toLowerCase().includes('league average')) {
@@ -49,13 +54,14 @@ const parseCSV = (csvText: string): TeamStats[] => {
     return true;
   });
 
-  console.log('Parsed and filtered data count:', parsedData.length);
-  console.log('Sample teams:', parsedData.slice(0, 10).map(team => team.Team));
+  console.log('Parsed teams count:', teams.length);
+  console.log('League averages found:', leagueAverages.length);
+  console.log('League averages:', leagueAverages.map(avg => avg.Team));
   
-  return parsedData;
+  return { teams, leagueAverages };
 };
 
-const fetchCSVData = async (url: string): Promise<TeamStats[]> => {
+const fetchCSVData = async (url: string): Promise<{ teams: TeamStats[], leagueAverages: TeamStats[] }> => {
   console.log(`Fetching data from: ${url}`);
   try {
     const response = await fetch(url);
@@ -74,21 +80,21 @@ const fetchCSVData = async (url: string): Promise<TeamStats[]> => {
 export const useGoalStats = () => {
   console.log('useGoalStats hook called');
 
-  const { data: homeStats = [], isLoading: homeLoading, error: homeError } = useQuery({
+  const { data: homeData, isLoading: homeLoading, error: homeError } = useQuery({
     queryKey: ['homeStats'],
     queryFn: () => fetchCSVData('https://raw.githubusercontent.com/scooby75/goal-stats-selector-pro/refs/heads/main/Goals_Stats_Home.csv'),
     retry: 3,
     retryDelay: 1000,
   });
 
-  const { data: awayStats = [], isLoading: awayLoading, error: awayError } = useQuery({
+  const { data: awayData, isLoading: awayLoading, error: awayError } = useQuery({
     queryKey: ['awayStats'],
     queryFn: () => fetchCSVData('https://raw.githubusercontent.com/scooby75/goal-stats-selector-pro/refs/heads/main/Goals_Stats_Away.csv'),
     retry: 3,
     retryDelay: 1000,
   });
 
-  const { data: overallStats = [], isLoading: overallLoading, error: overallError } = useQuery({
+  const { data: overallData, isLoading: overallLoading, error: overallError } = useQuery({
     queryKey: ['overallStats'],
     queryFn: () => fetchCSVData('https://raw.githubusercontent.com/scooby75/goal-stats-selector-pro/refs/heads/main/Goals_Stats_Overall.csv'),
     retry: 3,
@@ -98,11 +104,18 @@ export const useGoalStats = () => {
   const isLoading = homeLoading || awayLoading || overallLoading;
   const error = homeError || awayError || overallError;
 
+  const homeStats = homeData?.teams || [];
+  const awayStats = awayData?.teams || [];
+  const overallStats = overallData?.teams || [];
+  const homeLeagueAverages = homeData?.leagueAverages || [];
+  const awayLeagueAverages = awayData?.leagueAverages || [];
+  const overallLeagueAverages = overallData?.leagueAverages || [];
+
   // Enhanced debugging
   console.log('Raw home stats count:', homeStats.length);
   console.log('Raw away stats count:', awayStats.length);
-  console.log('Valid home teams:', homeStats.filter(team => team.Team && team.Team.trim() !== '').length);
-  console.log('Valid away teams:', awayStats.filter(team => team.Team && team.Team.trim() !== '').length);
+  console.log('Home league averages:', homeLeagueAverages.length);
+  console.log('Away league averages:', awayLeagueAverages.length);
 
   const calculateLeagueAverage = () => {
     if (overallStats.length === 0) return { "1.5+": 0, "2.5+": 0, "3.5+": 0, "4.5+": 0 };
@@ -125,6 +138,9 @@ export const useGoalStats = () => {
     awayStats,
     overallStats,
     leagueAverage: calculateLeagueAverage(),
+    homeLeagueAverages,
+    awayLeagueAverages,
+    overallLeagueAverages,
   };
 
   console.log('Final goal stats data:', { 
@@ -132,7 +148,9 @@ export const useGoalStats = () => {
     error: error?.message, 
     homeCount: homeStats.length,
     awayCount: awayStats.length,
-    overallCount: overallStats.length 
+    overallCount: overallStats.length,
+    homeLeagueAveragesCount: homeLeagueAverages.length,
+    awayLeagueAveragesCount: awayLeagueAverages.length
   });
 
   return { goalStatsData, isLoading, error };

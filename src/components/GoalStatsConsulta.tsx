@@ -123,7 +123,7 @@ export const GoalStatsConsulta = () => {
       <Card className="shadow-lg bg-gradient-to-r from-blue-500 to-green-500 text-white">
         <CardHeader>
           <CardTitle className="text-center text-xl">
-            📊 Média da Liga
+            📊 Média da Liga (Calculada)
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -155,8 +155,8 @@ export const GoalStatsConsulta = () => {
           awayStats={selectedAwayStats}
           selectedHomeTeam={selectedHomeTeam}
           selectedAwayTeam={selectedAwayTeam}
-          allHomeStats={goalStatsData.homeStats}
-          allAwayStats={goalStatsData.awayStats}
+          homeLeagueAverages={goalStatsData.homeLeagueAverages}
+          awayLeagueAverages={goalStatsData.awayLeagueAverages}
         />
       )}
 

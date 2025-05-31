@@ -21,4 +21,7 @@ export interface GoalStatsData {
   awayStats: TeamStats[];
   overallStats: TeamStats[];
   leagueAverage: LeagueStats;
+  homeLeagueAverages: TeamStats[];
+  awayLeagueAverages: TeamStats[];
+  overallLeagueAverages: TeamStats[];
 }
