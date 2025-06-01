@@ -30,67 +30,91 @@ export const LeagueAverageDisplay: React.FC<LeagueAverageDisplayProps> = ({
     return null;
   };
 
-  const findLeagueAverage = (): LeagueAverageData | null => {
+  const findLeagueAverage = (): { league: LeagueAverageData | null, isDifferentLeagues: boolean } => {
     // If we have no teams selected, return null
-    if (!selectedHomeTeam && !selectedAwayTeam) return null;
+    if (!selectedHomeTeam && !selectedAwayTeam) {
+      return { league: null, isDifferentLeagues: false };
+    }
     
-    let targetLeague = null;
+    let homeLeague = null;
+    let awayLeague = null;
     
-    // Try to extract league from selected teams
+    // Extract league from home team
     if (selectedHomeTeam) {
-      const league = extractLeagueFromTeamName(selectedHomeTeam);
-      if (league) {
-        const exactMatch = leagueAverages.find(la => 
-          la.League_Name.toLowerCase() === league.toLowerCase()
+      const leagueName = extractLeagueFromTeamName(selectedHomeTeam);
+      if (leagueName) {
+        homeLeague = leagueAverages.find(la => 
+          la.League_Name.toLowerCase() === leagueName.toLowerCase()
         );
         
-        if (exactMatch) {
-          targetLeague = exactMatch;
-        } else {
+        if (!homeLeague) {
           // Try partial match
-          const partialMatch = leagueAverages.find(la => 
-            la.League_Name.toLowerCase().includes(league.toLowerCase()) ||
-            league.toLowerCase().includes(la.League_Name.toLowerCase())
+          homeLeague = leagueAverages.find(la => 
+            la.League_Name.toLowerCase().includes(leagueName.toLowerCase()) ||
+            leagueName.toLowerCase().includes(la.League_Name.toLowerCase())
           );
-          
-          if (partialMatch) {
-            targetLeague = partialMatch;
-          }
         }
       }
     }
     
-    // If not found with home team, try with away team
-    if (!targetLeague && selectedAwayTeam) {
-      const league = extractLeagueFromTeamName(selectedAwayTeam);
-      if (league) {
-        const exactMatch = leagueAverages.find(la => 
-          la.League_Name.toLowerCase() === league.toLowerCase()
+    // Extract league from away team
+    if (selectedAwayTeam) {
+      const leagueName = extractLeagueFromTeamName(selectedAwayTeam);
+      if (leagueName) {
+        awayLeague = leagueAverages.find(la => 
+          la.League_Name.toLowerCase() === leagueName.toLowerCase()
         );
         
-        if (exactMatch) {
-          targetLeague = exactMatch;
-        } else {
+        if (!awayLeague) {
           // Try partial match
-          const partialMatch = leagueAverages.find(la => 
-            la.League_Name.toLowerCase().includes(league.toLowerCase()) ||
-            league.toLowerCase().includes(la.League_Name.toLowerCase())
+          awayLeague = leagueAverages.find(la => 
+            la.League_Name.toLowerCase().includes(leagueName.toLowerCase()) ||
+            leagueName.toLowerCase().includes(la.League_Name.toLowerCase())
           );
-          
-          if (partialMatch) {
-            targetLeague = partialMatch;
-          }
         }
       }
     }
 
-    console.log('Found league average:', targetLeague);
-    return targetLeague;
+    console.log('Home league found:', homeLeague?.League_Name);
+    console.log('Away league found:', awayLeague?.League_Name);
+
+    // Check if both teams are selected and from different leagues
+    if (selectedHomeTeam && selectedAwayTeam && homeLeague && awayLeague) {
+      if (homeLeague.League_Name !== awayLeague.League_Name) {
+        return { league: null, isDifferentLeagues: true };
+      }
+      return { league: homeLeague, isDifferentLeagues: false };
+    }
+    
+    // Return the league from either home or away team
+    const foundLeague = homeLeague || awayLeague;
+    return { league: foundLeague, isDifferentLeagues: false };
   };
 
-  const leagueAverage = findLeagueAverage();
+  const { league: leagueAverage, isDifferentLeagues } = findLeagueAverage();
   
-  // Always return null if no league average found
+  // Show "Different Leagues" message if teams are from different leagues
+  if (isDifferentLeagues) {
+    return (
+      <Card className="shadow-lg bg-gradient-to-r from-red-500 to-orange-500 text-white">
+        <CardHeader>
+          <CardTitle className="text-center text-xl">
+            ⚠️ Ligas Diferentes
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center">
+            <p className="text-lg">Os times selecionados pertencem a ligas diferentes.</p>
+            <p className="text-sm opacity-90 mt-2">
+              Selecione times da mesma liga para ver a média da liga.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  // Don't show if no league average found
   if (!leagueAverage) return null;
 
   const getTitle = () => {
@@ -115,7 +139,7 @@ export const LeagueAverageDisplay: React.FC<LeagueAverageDisplayProps> = ({
         {/* Desktop Table */}
         <div className="hidden md:block overflow-x-auto">
           <div className="bg-white/10 rounded-lg p-4">
-            <div className="grid grid-cols-6 gap-4 text-center font-semibold">
+            <div className="grid grid-cols-8 gap-4 text-center font-semibold">
               <div>
                 <div className="text-sm opacity-90 mb-1">0.5+</div>
                 <div className="text-lg">{leagueAverage["0.5+"]}%</div>
@@ -139,6 +163,14 @@ export const LeagueAverageDisplay: React.FC<LeagueAverageDisplayProps> = ({
               <div>
                 <div className="text-sm opacity-90 mb-1">5.5+</div>
                 <div className="text-lg">{leagueAverage["5.5+"]}%</div>
+              </div>
+              <div>
+                <div className="text-sm opacity-90 mb-1">BTS</div>
+                <div className="text-lg">{leagueAverage.BTS}%</div>
+              </div>
+              <div>
+                <div className="text-sm opacity-90 mb-1">CS</div>
+                <div className="text-lg">{leagueAverage.CS}%</div>
               </div>
             </div>
           </div>
@@ -170,6 +202,17 @@ export const LeagueAverageDisplay: React.FC<LeagueAverageDisplayProps> = ({
             <div className="bg-white/20 rounded-lg p-3 text-center">
               <div className="text-xs opacity-90">5.5+</div>
               <div className="text-lg font-bold">{leagueAverage["5.5+"]}%</div>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-2 mt-4">
+            <div className="bg-white/20 rounded-lg p-3 text-center">
+              <div className="text-xs opacity-90">BTS</div>
+              <div className="text-lg font-bold">{leagueAverage.BTS}%</div>
+            </div>
+            <div className="bg-white/20 rounded-lg p-3 text-center">
+              <div className="text-xs opacity-90">CS</div>
+              <div className="text-lg font-bold">{leagueAverage.CS}%</div>
             </div>
           </div>
         </div>
