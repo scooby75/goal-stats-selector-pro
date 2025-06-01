@@ -1,12 +1,11 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { useGoalStats } from '@/hooks/useGoalStats';
 import { StatsDisplay } from './StatsDisplay';
 import { FilteredLeagueAverage } from './FilteredLeagueAverage';
 import { LeagueAverageDisplay } from './LeagueAverageDisplay';
+import { SearchableSelect } from './SearchableSelect';
 
 export const GoalStatsConsulta = () => {
   console.log('GoalStatsConsulta component rendering');
@@ -109,53 +108,21 @@ export const GoalStatsConsulta = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Time da Casa ({homeTeams.length} times disponíveis)
-              </label>
-              <Select value={selectedHomeTeam} onValueChange={setSelectedHomeTeam}>
-                <SelectTrigger className="w-full bg-white">
-                  <SelectValue placeholder="Selecione o time da casa" />
-                </SelectTrigger>
-                <SelectContent className="bg-white z-50 max-h-[300px] overflow-y-auto">
-                  {homeTeams.length > 0 ? (
-                    homeTeams.map((team) => (
-                      <SelectItem key={team} value={team} className="bg-white hover:bg-gray-100">
-                        {team}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="no-teams" disabled className="bg-white">
-                      Nenhum time encontrado
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
+            <SearchableSelect
+              value={selectedHomeTeam}
+              onValueChange={setSelectedHomeTeam}
+              options={homeTeams}
+              placeholder="Selecione o time da casa"
+              label="Time da Casa"
+            />
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Time Visitante ({awayTeams.length} times disponíveis)
-              </label>
-              <Select value={selectedAwayTeam} onValueChange={setSelectedAwayTeam}>
-                <SelectTrigger className="w-full bg-white">
-                  <SelectValue placeholder="Selecione o time visitante" />
-                </SelectTrigger>
-                <SelectContent className="bg-white z-50 max-h-[300px] overflow-y-auto">
-                  {awayTeams.length > 0 ? (
-                    awayTeams.map((team) => (
-                      <SelectItem key={team} value={team} className="bg-white hover:bg-gray-100">
-                        {team}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="no-teams" disabled className="bg-white">
-                      Nenhum time encontrado
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
+            <SearchableSelect
+              value={selectedAwayTeam}
+              onValueChange={setSelectedAwayTeam}
+              options={awayTeams}
+              placeholder="Selecione o time visitante"
+              label="Time Visitante"
+            />
           </div>
         </CardContent>
       </Card>
