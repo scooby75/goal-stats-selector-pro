@@ -27,56 +27,59 @@ export const LeagueAverageDisplay: React.FC<LeagueAverageDisplayProps> = ({
       return parts[0].trim();
     }
     
-    // Alternative: check for common league patterns
-    const leaguePatterns = [
-      /^(.+)\s+\w+$/,  // General pattern
-      /^(.+?)\s+[A-Z]{2,3}$/  // Country code pattern
-    ];
-    
-    for (const pattern of leaguePatterns) {
-      const match = teamName.match(pattern);
-      if (match) {
-        return match[1].trim();
-      }
-    }
-    
     return null;
   };
 
   const findLeagueAverage = (): LeagueAverageData | null => {
-    const teams = [];
-    if (homeStats && selectedHomeTeam) teams.push(homeStats);
-    if (awayStats && selectedAwayTeam) teams.push(awayStats);
+    // If we have no teams selected, return null
+    if (!selectedHomeTeam && !selectedAwayTeam) return null;
     
-    if (teams.length === 0) return null;
-
-    // Extract league from team names
     let targetLeague = null;
     
-    for (const team of teams) {
-      const league = extractLeagueFromTeamName(team.Team);
-      console.log(`Extracted league from ${team.Team}:`, league);
-      
+    // Try to extract league from selected teams
+    if (selectedHomeTeam) {
+      const league = extractLeagueFromTeamName(selectedHomeTeam);
       if (league) {
-        // Try to find exact match first
         const exactMatch = leagueAverages.find(la => 
           la.League_Name.toLowerCase() === league.toLowerCase()
         );
         
         if (exactMatch) {
           targetLeague = exactMatch;
-          break;
+        } else {
+          // Try partial match
+          const partialMatch = leagueAverages.find(la => 
+            la.League_Name.toLowerCase().includes(league.toLowerCase()) ||
+            league.toLowerCase().includes(la.League_Name.toLowerCase())
+          );
+          
+          if (partialMatch) {
+            targetLeague = partialMatch;
+          }
         }
-        
-        // Try partial match
-        const partialMatch = leagueAverages.find(la => 
-          la.League_Name.toLowerCase().includes(league.toLowerCase()) ||
-          league.toLowerCase().includes(la.League_Name.toLowerCase())
+      }
+    }
+    
+    // If not found with home team, try with away team
+    if (!targetLeague && selectedAwayTeam) {
+      const league = extractLeagueFromTeamName(selectedAwayTeam);
+      if (league) {
+        const exactMatch = leagueAverages.find(la => 
+          la.League_Name.toLowerCase() === league.toLowerCase()
         );
         
-        if (partialMatch) {
-          targetLeague = partialMatch;
-          break;
+        if (exactMatch) {
+          targetLeague = exactMatch;
+        } else {
+          // Try partial match
+          const partialMatch = leagueAverages.find(la => 
+            la.League_Name.toLowerCase().includes(league.toLowerCase()) ||
+            league.toLowerCase().includes(la.League_Name.toLowerCase())
+          );
+          
+          if (partialMatch) {
+            targetLeague = partialMatch;
+          }
         }
       }
     }
@@ -87,6 +90,7 @@ export const LeagueAverageDisplay: React.FC<LeagueAverageDisplayProps> = ({
 
   const leagueAverage = findLeagueAverage();
   
+  // Always return null if no league average found
   if (!leagueAverage) return null;
 
   const getTitle = () => {
@@ -111,15 +115,7 @@ export const LeagueAverageDisplay: React.FC<LeagueAverageDisplayProps> = ({
         {/* Desktop Table */}
         <div className="hidden md:block overflow-x-auto">
           <div className="bg-white/10 rounded-lg p-4">
-            <div className="grid grid-cols-8 gap-4 text-center font-semibold">
-              <div>
-                <div className="text-sm opacity-90 mb-1">GP</div>
-                <div className="text-lg">{leagueAverage.GP || 'N/A'}</div>
-              </div>
-              <div>
-                <div className="text-sm opacity-90 mb-1">Avg</div>
-                <div className="text-lg">{leagueAverage.Avg ? leagueAverage.Avg.toFixed(2) : 'N/A'}</div>
-              </div>
+            <div className="grid grid-cols-6 gap-4 text-center font-semibold">
               <div>
                 <div className="text-sm opacity-90 mb-1">0.5+</div>
                 <div className="text-lg">{leagueAverage["0.5+"]}%</div>
@@ -150,17 +146,6 @@ export const LeagueAverageDisplay: React.FC<LeagueAverageDisplayProps> = ({
         
         {/* Mobile Cards */}
         <div className="block md:hidden space-y-4">
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            <div className="bg-white/20 rounded-lg p-3 text-center">
-              <div className="text-sm opacity-90">GP</div>
-              <div className="text-xl font-bold">{leagueAverage.GP || 'N/A'}</div>
-            </div>
-            <div className="bg-white/20 rounded-lg p-3 text-center">
-              <div className="text-sm opacity-90">Avg</div>
-              <div className="text-xl font-bold">{leagueAverage.Avg ? leagueAverage.Avg.toFixed(2) : 'N/A'}</div>
-            </div>
-          </div>
-          
           <div className="grid grid-cols-3 gap-2">
             <div className="bg-white/20 rounded-lg p-3 text-center">
               <div className="text-xs opacity-90">0.5+</div>
