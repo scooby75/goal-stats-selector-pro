@@ -6,6 +6,7 @@ import { Loader2, AlertCircle } from 'lucide-react';
 import { useGoalStats } from '@/hooks/useGoalStats';
 import { StatsDisplay } from './StatsDisplay';
 import { FilteredLeagueAverage } from './FilteredLeagueAverage';
+import { LeagueAverageDisplay } from './LeagueAverageDisplay';
 
 export const GoalStatsConsulta = () => {
   console.log('GoalStatsConsulta component rendering');
@@ -147,6 +148,17 @@ export const GoalStatsConsulta = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* League Average Display for Selected Teams */}
+      {(selectedHomeTeam || selectedAwayTeam) && (
+        <LeagueAverageDisplay 
+          homeStats={selectedHomeStats}
+          awayStats={selectedAwayStats}
+          leagueAverages={goalStatsData.leagueAverages}
+          selectedHomeTeam={selectedHomeTeam}
+          selectedAwayTeam={selectedAwayTeam}
+        />
+      )}
 
       {/* Filtered League Average */}
       {(selectedHomeTeam || selectedAwayTeam) && (

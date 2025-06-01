@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { TeamStats, GoalStatsData } from '@/types/goalStats';
+import { TeamStats, GoalStatsData, LeagueAverageData } from '@/types/goalStats';
 
 const parseCSV = (csvText: string): TeamStats[] => {
   console.log('Parsing CSV data...');
@@ -55,6 +55,42 @@ const parseCSV = (csvText: string): TeamStats[] => {
   return parsedData;
 };
 
+const parseLeagueAveragesCSV = (csvText: string): LeagueAverageData[] => {
+  console.log('Parsing League Averages CSV data...');
+  const lines = csvText.trim().split('\n');
+  const headers = lines[0].split(',');
+  
+  console.log('League CSV Headers:', headers);
+  console.log('Total league lines:', lines.length);
+  
+  const parsedData = lines.slice(1).map((line) => {
+    const values = line.split(',');
+    const league: any = {};
+    
+    headers.forEach((header, headerIndex) => {
+      const cleanHeader = header.trim().replace(/"/g, '');
+      let cleanValue = values[headerIndex]?.trim().replace(/"/g, '') || '';
+      
+      if (cleanHeader === 'League_Name') {
+        league.League_Name = cleanValue;
+      } else {
+        // Remove % sign and convert to number
+        if (cleanValue.includes('%')) {
+          cleanValue = cleanValue.replace('%', '');
+        }
+        league[cleanHeader] = parseFloat(cleanValue) || 0;
+      }
+    });
+    
+    return league as LeagueAverageData;
+  });
+
+  console.log('Parsed league averages count:', parsedData.length);
+  console.log('Sample leagues:', parsedData.slice(0, 5).map(league => league.League_Name));
+  
+  return parsedData;
+};
+
 const fetchCSVData = async (url: string): Promise<TeamStats[]> => {
   console.log(`Fetching data from: ${url}`);
   try {
@@ -67,6 +103,23 @@ const fetchCSVData = async (url: string): Promise<TeamStats[]> => {
     return parseCSV(csvText);
   } catch (error) {
     console.error(`Error fetching data from ${url}:`, error);
+    throw error;
+  }
+};
+
+const fetchLeagueAveragesData = async (): Promise<LeagueAverageData[]> => {
+  const url = 'https://raw.githubusercontent.com/scooby75/goal-stats-selector-pro/refs/heads/main/League_Averages.csv';
+  console.log(`Fetching league averages from: ${url}`);
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch league averages: ${response.status}`);
+    }
+    const csvText = await response.text();
+    console.log('League averages data fetched successfully');
+    return parseLeagueAveragesCSV(csvText);
+  } catch (error) {
+    console.error('Error fetching league averages:', error);
     throw error;
   }
 };
@@ -95,12 +148,20 @@ export const useGoalStats = () => {
     retryDelay: 1000,
   });
 
-  const isLoading = homeLoading || awayLoading || overallLoading;
-  const error = homeError || awayError || overallError;
+  const { data: leagueAverages = [], isLoading: leagueLoading, error: leagueError } = useQuery({
+    queryKey: ['leagueAverages'],
+    queryFn: fetchLeagueAveragesData,
+    retry: 3,
+    retryDelay: 1000,
+  });
+
+  const isLoading = homeLoading || awayLoading || overallLoading || leagueLoading;
+  const error = homeError || awayError || overallError || leagueError;
 
   // Enhanced debugging
   console.log('Raw home stats count:', homeStats.length);
   console.log('Raw away stats count:', awayStats.length);
+  console.log('Raw league averages count:', leagueAverages.length);
   console.log('Valid home teams:', homeStats.filter(team => team.Team && team.Team.trim() !== '').length);
   console.log('Valid away teams:', awayStats.filter(team => team.Team && team.Team.trim() !== '').length);
 
@@ -125,6 +186,7 @@ export const useGoalStats = () => {
     awayStats,
     overallStats,
     leagueAverage: calculateLeagueAverage(),
+    leagueAverages,
   };
 
   console.log('Final goal stats data:', { 
@@ -132,7 +194,8 @@ export const useGoalStats = () => {
     error: error?.message, 
     homeCount: homeStats.length,
     awayCount: awayStats.length,
-    overallCount: overallStats.length 
+    overallCount: overallStats.length,
+    leagueAveragesCount: leagueAverages.length
   });
 
   return { goalStatsData, isLoading, error };
