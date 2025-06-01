@@ -58,6 +58,46 @@ export const GoalStatsConsulta = () => {
   const selectedHomeStats = goalStatsData.homeStats.find(team => team.Team === selectedHomeTeam);
   const selectedAwayStats = goalStatsData.awayStats.find(team => team.Team === selectedAwayTeam);
 
+  // Verificar as ligas dos times selecionados
+  const getTeamLeague = (teamName: string, isHome: boolean) => {
+    const stats = isHome 
+      ? goalStatsData.homeStats.find(team => team.Team === teamName)
+      : goalStatsData.awayStats.find(team => team.Team === teamName);
+    return stats?.League_Name;
+  };
+
+  const homeTeamLeague = selectedHomeTeam ? getTeamLeague(selectedHomeTeam, true) : null;
+  const awayTeamLeague = selectedAwayTeam ? getTeamLeague(selectedAwayTeam, false) : null;
+
+  console.log('Home team league:', homeTeamLeague);
+  console.log('Away team league:', awayTeamLeague);
+
+  // Determinar se devemos mostrar a média da liga ou aviso de ligas diferentes
+  const shouldShowLeagueAverage = () => {
+    if (!selectedHomeTeam && !selectedAwayTeam) return false;
+    if (selectedHomeTeam && selectedAwayTeam) {
+      return homeTeamLeague === awayTeamLeague && homeTeamLeague;
+    }
+    return true; // Se apenas um time está selecionado, mostrar a média da liga
+  };
+
+  const shouldShowDifferentLeaguesWarning = () => {
+    return selectedHomeTeam && selectedAwayTeam && 
+           homeTeamLeague && awayTeamLeague && 
+           homeTeamLeague !== awayTeamLeague;
+  };
+
+  const getLeagueAverageData = () => {
+    const targetLeague = homeTeamLeague || awayTeamLeague;
+    if (!targetLeague) return null;
+    
+    return goalStatsData.leagueAverages.find(
+      league => league.League_Name === targetLeague
+    );
+  };
+
+  const leagueAverageData = getLeagueAverageData();
+
   return (
     <div className="space-y-6">
       {/* Team Selection */}
@@ -120,34 +160,120 @@ export const GoalStatsConsulta = () => {
         </CardContent>
       </Card>
 
-      {/* League Average Card */}
-      <Card className="shadow-lg bg-gradient-to-r from-blue-500 to-green-500 text-white">
-        <CardHeader>
-          <CardTitle className="text-center text-xl">
-            📊 Média da Liga
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            <div className="bg-white/20 rounded-lg p-4">
-              <div className="text-2xl font-bold">{goalStatsData.leagueAverage["1.5+"]}%</div>
-              <div className="text-sm opacity-90">Jogos 1.5+ gols</div>
+      {/* Aviso de Ligas Diferentes */}
+      {shouldShowDifferentLeaguesWarning() && (
+        <Card className="shadow-lg bg-gradient-to-r from-red-500 to-orange-500 text-white">
+          <CardHeader>
+            <CardTitle className="text-center text-xl">
+              ⚠️ Ligas Diferentes
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center">
+              <p className="text-lg">Os times selecionados pertencem a ligas diferentes.</p>
+              <p className="text-sm opacity-90 mt-2">
+                Time da Casa: {homeTeamLeague}
+              </p>
+              <p className="text-sm opacity-90">
+                Time Visitante: {awayTeamLeague}
+              </p>
             </div>
-            <div className="bg-white/20 rounded-lg p-4">
-              <div className="text-2xl font-bold">{goalStatsData.leagueAverage["2.5+"]}%</div>
-              <div className="text-sm opacity-90">Jogos 2.5+ gols</div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Média da Liga - Baseada nos times selecionados */}
+      {shouldShowLeagueAverage() && leagueAverageData && (
+        <Card className="shadow-lg bg-gradient-to-r from-blue-500 to-green-500 text-white">
+          <CardHeader>
+            <CardTitle className="text-center text-xl">
+              📊 Média da Liga: {leagueAverageData.League_Name}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <div className="bg-white/10 rounded-lg p-4">
+                <div className="grid grid-cols-8 gap-4 text-center font-semibold">
+                  <div>
+                    <div className="text-sm opacity-90 mb-1">0.5+</div>
+                    <div className="text-lg">{leagueAverageData["0.5+"]}%</div>
+                  </div>
+                  <div>
+                    <div className="text-sm opacity-90 mb-1">1.5+</div>
+                    <div className="text-lg">{leagueAverageData["1.5+"]}%</div>
+                  </div>
+                  <div>
+                    <div className="text-sm opacity-90 mb-1">2.5+</div>
+                    <div className="text-lg">{leagueAverageData["2.5+"]}%</div>
+                  </div>
+                  <div>
+                    <div className="text-sm opacity-90 mb-1">3.5+</div>
+                    <div className="text-lg">{leagueAverageData["3.5+"]}%</div>
+                  </div>
+                  <div>
+                    <div className="text-sm opacity-90 mb-1">4.5+</div>
+                    <div className="text-lg">{leagueAverageData["4.5+"]}%</div>
+                  </div>
+                  <div>
+                    <div className="text-sm opacity-90 mb-1">5.5+</div>
+                    <div className="text-lg">{leagueAverageData["5.5+"]}%</div>
+                  </div>
+                  <div>
+                    <div className="text-sm opacity-90 mb-1">BTS</div>
+                    <div className="text-lg">{leagueAverageData.BTS}%</div>
+                  </div>
+                  <div>
+                    <div className="text-sm opacity-90 mb-1">CS</div>
+                    <div className="text-lg">{leagueAverageData.CS}%</div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="bg-white/20 rounded-lg p-4">
-              <div className="text-2xl font-bold">{goalStatsData.leagueAverage["3.5+"]}%</div>
-              <div className="text-sm opacity-90">Jogos 3.5+ gols</div>
+            
+            {/* Mobile Cards */}
+            <div className="block md:hidden space-y-4">
+              <div className="grid grid-cols-3 gap-2">
+                <div className="bg-white/20 rounded-lg p-3 text-center">
+                  <div className="text-xs opacity-90">0.5+</div>
+                  <div className="text-lg font-bold">{leagueAverageData["0.5+"]}%</div>
+                </div>
+                <div className="bg-white/20 rounded-lg p-3 text-center">
+                  <div className="text-xs opacity-90">1.5+</div>
+                  <div className="text-lg font-bold">{leagueAverageData["1.5+"]}%</div>
+                </div>
+                <div className="bg-white/20 rounded-lg p-3 text-center">
+                  <div className="text-xs opacity-90">2.5+</div>
+                  <div className="text-lg font-bold">{leagueAverageData["2.5+"]}%</div>
+                </div>
+                <div className="bg-white/20 rounded-lg p-3 text-center">
+                  <div className="text-xs opacity-90">3.5+</div>
+                  <div className="text-lg font-bold">{leagueAverageData["3.5+"]}%</div>
+                </div>
+                <div className="bg-white/20 rounded-lg p-3 text-center">
+                  <div className="text-xs opacity-90">4.5+</div>
+                  <div className="text-lg font-bold">{leagueAverageData["4.5+"]}%</div>
+                </div>
+                <div className="bg-white/20 rounded-lg p-3 text-center">
+                  <div className="text-xs opacity-90">5.5+</div>
+                  <div className="text-lg font-bold">{leagueAverageData["5.5+"]}%</div>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2 mt-4">
+                <div className="bg-white/20 rounded-lg p-3 text-center">
+                  <div className="text-xs opacity-90">BTS</div>
+                  <div className="text-lg font-bold">{leagueAverageData.BTS}%</div>
+                </div>
+                <div className="bg-white/20 rounded-lg p-3 text-center">
+                  <div className="text-xs opacity-90">CS</div>
+                  <div className="text-lg font-bold">{leagueAverageData.CS}%</div>
+                </div>
+              </div>
             </div>
-            <div className="bg-white/20 rounded-lg p-4">
-              <div className="text-2xl font-bold">{goalStatsData.leagueAverage["4.5+"]}%</div>
-              <div className="text-sm opacity-90">Jogos 4.5+ gols</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* League Average Display for Selected Teams */}
       {(selectedHomeTeam || selectedAwayTeam) && (

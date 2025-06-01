@@ -1,6 +1,7 @@
 
 export interface TeamStats {
   Team: string;
+  League_Name?: string;
   GP: number;
   Avg: number;
   "0.5+"?: number;

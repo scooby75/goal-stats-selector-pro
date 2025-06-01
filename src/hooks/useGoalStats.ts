@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { TeamStats, GoalStatsData, LeagueAverageData } from '@/types/goalStats';
@@ -21,6 +20,8 @@ const parseCSV = (csvText: string): TeamStats[] => {
       
       if (cleanHeader === 'Team' || cleanHeader === 'team' || cleanHeader.toLowerCase().includes('team')) {
         stats.Team = cleanValue;
+      } else if (cleanHeader === 'League_Name') {
+        stats.League_Name = cleanValue;
       } else {
         stats[cleanHeader] = parseFloat(cleanValue) || 0;
       }
@@ -50,7 +51,7 @@ const parseCSV = (csvText: string): TeamStats[] => {
   });
 
   console.log('Parsed and filtered data count:', parsedData.length);
-  console.log('Sample teams:', parsedData.slice(0, 10).map(team => team.Team));
+  console.log('Sample teams:', parsedData.slice(0, 10).map(team => `${team.Team} (${team.League_Name})`));
   
   return parsedData;
 };
